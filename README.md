@@ -70,4 +70,30 @@ When a user adds an item like “600g chicken breast,” the system finds the cl
 
 ## 🗂️ Folder Structure
 
+---
 
+🛠️ Project Roadmap (Phase 1: Basic NLP Matching)
+Here’s how we’ll tackle it:
+
+✅ Step 1: Project Setup
+Set up folders and install dependencies
+
+Prepare a tiny product dataset for testing
+
+🔤 Step 2: Text Cleaning (Preprocessing)
+Lowercase, remove punctuation, simplify whitespace
+
+Basic function to make product names consistent
+
+🧮 Step 3: TF-IDF Vectorisation
+Learn how text is turned into numbers
+
+Compare text with cosine similarity to find best matches
+
+⚖️ Step 4: Quantity Parsing (Structured Info)
+Normalise “600g”, “1.2kg”, etc. into comparable values
+
+🧠 Step 5: Combine Matching Logic
+Build a matcher that considers both name similarity and size
+
+Test it on real-ish examples
