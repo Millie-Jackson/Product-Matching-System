@@ -11,19 +11,21 @@ to find the most relevant match from a candidate list.
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from matchers.clean_text import clean_text
 
 
-products = [
-    "600g Boneless Chicken Breast",
-    "640g Chicken Fillet Pack",
-    "Whole Chicken 1.2kg"
-]
+def match_product(query: str, candidates: list[str]) -> tuple[str, float]:
 
+    all_texts = [clean_text(query)] + [clean_text(c) for c in candidates]
 
-vectorizer = TfidfVectorizer()
-X = vectorizer.fit_transform(products)
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(all_texts)
 
+    # Compare first item (query) with all others
+    similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
+    
+    best_index = similarities.argmax()
+    best_score = similarities[best_index]
+    best_match = candidates[best_index]
 
-# Compare first item (query) with others
-similarities = cosine_similarity(X[0:1], X[1:])
-print(similarities) # -> array([[similarity_score_1, similarity_score_2]])
+    return best_match, best_score
