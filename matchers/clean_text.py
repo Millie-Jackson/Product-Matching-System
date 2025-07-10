@@ -1,9 +1,11 @@
+# matchers/clean_text.py
+
+
 """
 clean_text.py
 
-Simple text cleaning function for product titles and descriptions.
-Lowercases, removes punctuation/special characters, and normalises whitespace.
-Useful as a preprocessing step for product matching pipelines.
+Provides a text cleaning function to prepare product names and descriptions
+for comparison across different stores.
 """
 
 
@@ -11,11 +13,18 @@ import re
 import unicodedata
   
 
-def clean_text(text):
+def clean_text(text: str) -> str:
 
+    # Lowercase everything
     text = text.lower()
+
+    # Normalize weird characters
     text = unicodedata.normalize("NFKD", text)
+
+    # Remove anything that's not a letter, number, or space
     text = re.sub(r"[^a-z0-9\s]", "", text)
+
+    # Replace multiple spaces with a single space
     text = re.sub(r"\s+", " ", text).strip()
     
     return text

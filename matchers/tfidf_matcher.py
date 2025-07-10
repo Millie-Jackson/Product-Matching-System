@@ -1,11 +1,12 @@
-"""
-product_embedding.py
+# matchers/tfidf_matcher.py
 
-Generates TF-IDF embeddings for a list of product descriptions and calculates
-cosine similarity between them to identify likely matches. Useful for detecting
-similar branded or own-brand items in different stores.
-"""
 
+"""
+tfidf_matcher.py
+
+Vectorises product descriptions using TF-IDF and calculates similarity
+to find the most relevant match from a candidate list.
+"""
 
 
 from sklearn.feature_extraction.text import TfidfVectorizer
