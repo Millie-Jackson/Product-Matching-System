@@ -19,7 +19,7 @@ def extract_weight(text: str) -> int | None:
     """
 
     # Match patterns like "600g", "1.2kg", "1000 g", etc.
-    match = re.search(r"(\d+(?:\.\d+)?)\s*(g|kg)", text.lower())
+    match = re.search(r"(\d+(?:\.\d+)?)\s*(g|kg)", text)
     if not match:
         return None
     

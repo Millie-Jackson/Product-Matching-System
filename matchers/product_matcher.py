@@ -1,30 +1,42 @@
+# matcher/product_matcher.py
+
+
 """
-match_products.py
+product_matcher.py
 
-Uses TF-IDF vectorisation and cosine similarity to find the closest matching product
-from a list of candidates based on a user query. Ideal for building product matching tools
-across supermarket datasets.
+Combines name similarity and quantity matching to select the best product.
+Optionally penalises matches with large size differences.
 """
 
 
+from matchers.clean_text import clean_text
+from matchers.quantity_parser import extract_weight
+from matchers.tfidf_matcher import match_product as tfidf_only_match
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
-def match_product(query, candidates):
+def match_product(query: str, candidates: list[str], weight_penalty: float = 0.001) -> tuple[str, float]:
+    """
+    Finds the best matching product using both text similarity and weight difference.
+    A small penalty is subtracted based on the absolute size difference (in grams).
+    """
 
-    vectorizer = TfidfVectorizer()
-    all_text = [query] + candidates
-    tfidf = vectorizer.fit_transform(all_text)
-    sims = cosine_similarity(tfidf[0:1], tfidf[1:]).flatten()
-    best_idx = sims.argmax()
+    query_weight = extract_weight(clean_text(query))
+    best_match = None
+    best_score = -1
 
-    return candidates[best_idx], sims[best_idx]
+    for candidate in candidates:
 
+        candidate_weight = extract_weight(clean_text(candidate)) 
+        match_text, score = tfidf_only_match(query, [candidate]) # -> (match, similarity)
 
-query = "600g Boneless Chicken Breast"
-candidates = ["Chicken Breast 640g", "Whole Chicken 1.2kg", "Tofu 400g"]
+        if query_weight and candidate_weight:
+            diff = abs(query_weight - candidate_weight)
+            score -= diff * weight_penalty # penalise larger size mismatches
 
-match, score = match_product(query, candidates)
-print("Best Match:", match)
-print("Score:", round(score, 2))
+        if score > best_score:
+            best_score = score
+            best_match = candidate
+
+    return best_match, round(best_score, 4)
