@@ -9,6 +9,7 @@ or demo purposes.
 
 from matchers.clean_text import clean_text
 from matchers.tfidf_matcher import match_product
+from matchers.quantity_parser import extract_weight
 
 
 query = "600g Chicken Breast"
@@ -18,14 +19,15 @@ products = [
     "Whole Chicken 1.2kg",
     "Vegan Chicken Strips - 300g!",
     "Tofu, Block (400g)",
+    "Pack of Cheese Slices (no weight)",
 ]
 
-'''for product in products:
+for product in products:
+
+    cleaned = clean_text(product)
+    weight = extract_weight(cleaned)
+    weight_str = f"{weight}g" if weight is not None else "No weight found"
+    
     print(f"Original: {product}")
-    print(f"Cleaned: {clean_text(product)}\n")'''
-
-best_match, score = match_product(query, products)
-
-print(f"Query: {query}")
-print(f"Best Match: {best_match}")
-print(f"Similarity Score: {score:.2f}")
+    print(f"Cleaned: {cleaned}")
+    print(f"Parsed weight: {weight_str}\n")
