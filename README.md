@@ -54,8 +54,9 @@ Users can enter a shopping list item (like "600g Chicken Breast") and instantly 
 
 🧪 Try it yourself (locally):
 
-'''python interface.py'''
-Then visit: '''http://127.0.0.1:7860'''
+Run `python interface.py`
+
+Then visit: `http://127.0.0.1:7860`
 
 ---
 
