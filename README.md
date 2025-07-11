@@ -8,37 +8,75 @@ When a user adds an item like “600g chicken breast,” the system finds the cl
 
 ---
 
+![Interface](assets/Screenshot-Interface.png)
+
 ## 🚀 Features
 
-- ✅ Clean and normalise product names
-- ✅ Extract and compare product quantities (e.g., “1.2kg” vs. “600g”)
-- ✅ Calculate similarity using TF-IDF vectorisation
-- ✅ Match user queries to the most similar item in a candidate list
-- ✅ Lightweight CLI tool for testing and demonstration
+✅ Clean and normalise product names
+✅ Extract and compare product quantities (e.g., "1.2kg" vs. "600g")
+✅ Calculate similarity using TF-IDF vectorisation
+✅ Penalise matches with large size mismatches
+✅ Simple CLI and Gradio interfaces for testing
 
 ---
 
-## 📁 File Descriptions
-
-| File | Description |
-|------|-------------|
-| `01_clean_text.py` | Tidies up product names by removing symbols, lowercasing, and standardising formatting |
-| `02_product_embedding.py` | Turns product descriptions into vectors using TF-IDF and compares them by similarity |
-| `03_quantity_parser.py` | Extracts and normalises product size (e.g., always outputs weight in grams) |
-| `04_match_products.py` | Finds the best matching product based on name and size similarity |
-| `05_optional_interface.py` | Basic interactive command-line interface for manual testing |
+## 📂 File Structure
+product-matching/
+|
+├── data/
+│   └── sample_products.csv
+├── matchers/
+│   ├── clean_text.py          # Text cleaning and formatting
+│   ├── tfidf_matcher.py       # TF-IDF similarity scoring
+│   ├── quantity_parser.py     # Extract and normalise weights
+│   └── product_matcher.py     # Combine text + size matching
+├── demo.py                    # CLI output testing script
+├── interface.py               # CLI + Gradio demo interface
+└── README.md
 
 ---
 
-## 📊 Sample Output
+## 📊 Sample Output (CLI)
 
-**Query:** `600g Boneless Chicken Breast`  
-**Candidate List:**
-- Chicken Breast 640g  
-- Whole Chicken 1.2kg  
-- Tofu 400g
+Original:      600g Boneless Chicken Breast
+Cleaned:       600g boneless chicken breast
+Parsed weight: 600g
+----------------------------------------
+Original:      1.2kg Whole Chicken
+Cleaned:       12kg whole chicken
+Parsed weight: 1200g
+----------------------------------------
+Query:        600g Chicken Breast
+Best match:   Chicken Thighs 600g
+Match score:  0.7423
 
-**Output:** Best match: Chicken Breast 640g (0.84 similarity)
+Users can enter a shopping list item (like "600g Chicken Breast") and instantly see the best-matching product from a mock supermarket database.
+
+🧪 Try it yourself (locally):
+
+Run `python interface.py`
+
+Then visit: `http://127.0.0.1:7860`
+
+---
+
+## 🗃️ How It Works
+
+**1. Text Cleaning**
+
+Lowercase, remove symbols, normalise spacing
+
+**2. Quantity Parsing**
+
+Extract weights (e.g., "1.2kg") and convert to grams
+
+**3. TF-IDF Embedding**
+
+Represent product names as vectors
+
+**4. Matching Logic**
+
+Combine name similarity + size penalty to rank best candidates
 
 ---
 
@@ -47,53 +85,27 @@ When a user adds an item like “600g chicken breast,” the system finds the cl
 - Python 3
 - `scikit-learn` for text vectorisation and similarity
 - `re` for pattern matching
-- Optional: `streamlit` or `gradio` for interactive demo (future upgrade)
+- `gradio` for interactive demo
 
 ---
 
 ## 🧠 Learning Highlights
 
-- Applied natural language processing (NLP) to real-world product matching
-- Built a reusable product comparison pipeline
-- Balanced structured data (e.g. size) and unstructured data (e.g. names) in matching logic
+- Applied NLP to real-world product descriptions
+- Used TF-IDF and cosine similarity for semantic matching
+- Parsed structured features (quantities) with regex
+- Combined numeric + text similarity for smarter search
+- Created a clean, modular structure ideal for portfolios
 
 ---
 
 ## 🧩 Possible Extensions
 
-- 🔍 Add sentence embeddings (e.g. `sentence-transformers`) for smarter matching
-- 🧪 Add accuracy metrics and test datasets
-- 🛍️ Build a mini web app for interactive shopping list comparison
-- 🌍 Integrate with real supermarket APIs or datasets
+- Add support for transformer embeddings (e.g. SBERT)
+- Show full ranked match list instead of just top result
+- Handle multiple query items (full shopping lists)
+- Load real product data from supermarket APIs
+- Build API or Streamlit dashboard for production use
 
 ---
 
-## 🗂️ Folder Structure
-
----
-
-🛠️ Project Roadmap (Phase 1: Basic NLP Matching)
-Here’s how we’ll tackle it:
-
-✅ Step 1: Project Setup
-Set up folders and install dependencies
-
-Prepare a tiny product dataset for testing
-
-🔤 Step 2: Text Cleaning (Preprocessing)
-Lowercase, remove punctuation, simplify whitespace
-
-Basic function to make product names consistent
-
-🧮 Step 3: TF-IDF Vectorisation
-Learn how text is turned into numbers
-
-Compare text with cosine similarity to find best matches
-
-⚖️ Step 4: Quantity Parsing (Structured Info)
-Normalise “600g”, “1.2kg”, etc. into comparable values
-
-🧠 Step 5: Combine Matching Logic
-Build a matcher that considers both name similarity and size
-
-Test it on real-ish examples
