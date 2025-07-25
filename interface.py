@@ -1,11 +1,8 @@
-# interface.py
-
-
 """
 interface.py
 
 Interactive tool for product matching with a clean layout, live threshold slider,
-and working match table + CSV download. Keeps interface separate from evaluation reporting.
+and working match table + CSV download. Supports shopping lists.
 """
 
 
@@ -13,51 +10,62 @@ import gradio as gr
 import pandas as pd
 import tempfile
 from matchers.product_matcher import match_product
+from matchers.store_matcher import load_product_data, calculate_total_price
 
 
-# Dummy product list
-products = [
-    "600g Boneless Chicken Breast",
-    "Chicken Fillet 640g",
-    "Whole Chicken 1.2kg",
-    "Vegan Chicken Strips - 300g!",
-    "Tofu, Block (400g)",
-    "Pack of Cheese Slices (no weight)",
-    "Chicken Thighs 600g",
-]
+# Load product data
+product_df = load_product_data("data/supermarket_products.csv")
 
 
-def match_all(query, threshold):
+def match_shopping_list(shopping_list_text, threshold):
 
-    results = []
+    # Split multiline input into individual items
+    queries = [line.strip() for line in shopping_list_text.split("\n") if line.strip()]
 
-    for product in products:
-        match, score = match_product(query, [product])
-        results.append({
-            "Candidate": product,
-            "Match Score": round(score, 3),
-            "Is Predicted Match": match == product
-        })
+    # Match and calculate totals
+    totals, breakdown = calculate_total_price(queries, product_df, threshold)
 
-    df = pd.DataFrame(results).sort_values(by="Match Score", ascending=False).reset_index(drop=True)
-    df_filtered = df[df["Match Score"] >= threshold].copy()
+    # If no results, return empty outputs to avoid crashing
+    if totals.empty or breakdown.empty:
+        empty_totals = pd.DataFrame(columns=["store", "total_price"])
+        empty_breakdown = pd.DataFrame(columns=["query", "matched_product", "store", "price", "score"])
+    return empty_totals, empty_breakdown, None
 
-    csv_bytes = df_filtered.to_csv(index=False).encode("utf-8")
+    # Save csv for download
+    csv_data = pd.merge(breakdown, totals, on="store")
+    tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".csv", mode="w", encoding="utf-8")
+    csv_data.to_csv(tmp_file.name, index=False)
+    tmp_file.flush()
 
-    return df_filtered, ("matches.csv", csv_bytes)
+    return totals, breakdown, tmp_file.name
+
 
 with gr.Blocks() as demo:
-    gr.Markdown("## Product Matcher with Results Table")
-    gr.Markdown("Enter a product and view ranked matches across stores.")
+    gr.Markdown("## Shopping List Price Comparison")
+    gr.Markdown("Enter your shopping list below. Each line should contain one product item.")
 
-    query_input = gr.Textbox(label="Product", placeholder="e.g. 600g Chicekn Breast")
+    with gr.Row():
+        shopping_input = gr.Textbox(label="Shopping List", lines=8, placeholder="e.g.\n600g Chicken Breast\nTofu Block 400g", scale=2)
+        match_button = gr.Button("Compare", scale=1)
+
     threshold_slider = gr.Slider(0.0, 1.0, value=2.0, step=0.05, label="Confindence Threshold")
-    results_table = gr.Dataframe(label="Top Matches")
+    totals_output = gr.DataFrame(label="Total Price Per Store")
+    breakdown_output = gr.DataFrame(label="Item-Level Breakdown")
     csv_download = gr.File(label="Download CSV")
 
-    run_button = gr.Button("Matches")
+    match_button.click(
+        fn=match_shopping_list,
+        inputs=[shopping_input, threshold_slider],
+        outputs=[totals_output, breakdown_output, csv_download]
+    )
 
-    run_button.click(fn=match_all, inputs=query_input, outputs=[results_table, csv_download])
+    # Allow enter key to trigger button
+    shopping_input.submit(
+        fn=match_shopping_list,
+        inputs=[shopping_input, threshold_slider],
+        outputs=[totals_output, breakdown_output, csv_download]
+    )
+
 
 if __name__ == "__main__":
     print("Launching Gradio...")

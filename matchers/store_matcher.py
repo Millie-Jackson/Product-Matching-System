@@ -28,6 +28,7 @@ def match_product_per_store(query: str, df: pd.DataFrame, threshold: float = 0.2
     """
 
     matched = []
+    
     for store in df["store"].unique():
         subset = df[df["store"] == store].copy()
         if subset.empty:
@@ -57,9 +58,20 @@ def calculate_total_price(queries: list[str], df: pd.DataFrame, threshold: float
 
     for query in queries:
         per_store = match_product_per_store(query, df, threshold)
-        all_matches.append(per_store)
+        #all_matches.append(per_store)
+        if not per_store.empty:
+            all_matches.append(per_store)
+
+    # If all are empty
+    if not all_matches:
+        return pd.DataFrame(columns=["store", "total_price"]), pd.DataFrame(columns=["query", "matched_product", "store", "price", "score"])
 
     combined = pd.concat(all_matches, ignore_index=True)
+
+    # Defensive: ensure all required columns exist
+    if "store" not in combined.columns or "price" not in combined.columns:
+        return pd.DataFrame(columns=["store", "total_price"]), pd.DataFrame(columns=["query", "matched_product", "store", "price", "score"])
+
     totals = combined.groupby("store")["price"].sum().reset_index()
     totals = totals.rename(columns={"price": "total_price", })
 
