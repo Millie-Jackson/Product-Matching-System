@@ -1,7 +1,17 @@
 # interface.py
 
 
+"""
+interface.py
+
+Interactive tool for product matching with a clean layout, live threshold slider,
+and working match table + CSV download. Keeps interface separate from evaluation reporting.
+"""
+
+
 import gradio as gr
+import pandas as pd
+import tempfile
 from matchers.product_matcher import match_product
 
 
@@ -17,26 +27,37 @@ products = [
 ]
 
 
-def match_interface(query):
-    
-    best_match, score = match_product(query, products)
+def match_all(query, threshold):
 
-    return f"Best match: {best_match}\n Score: {score: .2f}"
+    results = []
 
-demo = gr.Interface(
-    fn=match_interface,
-    inputs=gr.Textbox(lines=1, placeholder="e.g. 600g Chicken Breast"),
-    outputs="text",
-    title="Product Matcher",
-    description="Enter a shopping list item and find the most similar product from a dummy supermarket dataset.",
-    examples=[
-        ["600g Chicken Breast"],
-        ["Tofu 400g"],
-        ["1kg Whole Chicken"],
-        ["Cheddar Cheese Slices"],
-    ]
-)
+    for product in products:
+        match, score = match_product(query, [product])
+        results.append({
+            "Candidate": product,
+            "Match Score": round(score, 3),
+            "Is Predicted Match": match == product
+        })
 
+    df = pd.DataFrame(results).sort_values(by="Match Score", ascending=False).reset_index(drop=True)
+    df_filtered = df[df["Match Score"] >= threshold].copy()
+
+    csv_bytes = df_filtered.to_csv(index=False).encode("utf-8")
+
+    return df_filtered, ("matches.csv", csv_bytes)
+
+with gr.Blocks() as demo:
+    gr.Markdown("## Product Matcher with Results Table")
+    gr.Markdown("Enter a product and view ranked matches across stores.")
+
+    query_input = gr.Textbox(label="Product", placeholder="e.g. 600g Chicekn Breast")
+    threshold_slider = gr.Slider(0.0, 1.0, value=2.0, step=0.05, label="Confindence Threshold")
+    results_table = gr.Dataframe(label="Top Matches")
+    csv_download = gr.File(label="Download CSV")
+
+    run_button = gr.Button("Matches")
+
+    run_button.click(fn=match_all, inputs=query_input, outputs=[results_table, csv_download])
 
 if __name__ == "__main__":
     print("Launching Gradio...")

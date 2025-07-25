@@ -2,10 +2,8 @@
 
 
 """
-evaluate.py
-
 Compares product matching predictions to a known dataset and calculates accuracy.
-Also saves a markdown report with the results.
+Also saves a markdown report with a clean visual table of all predictions.
 """
 
 
@@ -30,6 +28,7 @@ products = [
 ]
 
 # Evaluation
+results = []
 correct = 0
 total_score = 0
 mismatches = []
@@ -43,36 +42,43 @@ for _, row in df.iterrows():
     total_score += score
     if predicted == expected:
         correct += 1
-    else: 
-        mismatches.append((query, expected, predicted, score))
 
-accuracy = correct / len(df)
-mean_score = total_score / len(df)
+    results.append({
+        "Query": query,
+        "Expected": expected,
+        "Predicted": predicted,
+        "Score": round(score, 2)
+    })
+
+accuracy = correct / len(results)
+mean_score = total_score / len(results)
 
 # Console output
 print(f"Accuracy: {accuracy:.2%}")
 print(f"Mean match score: {mean_score:.2f}")
-print("\nMismatches:")
-for q, exp, pred, s in mismatches:
-    print(f"- Query: {q}\n  Expected: {exp}\n  Predicted: {pred} (score: {s:.2f})\n")
-
+print("\nPredictions:")
+for r in results:
+    print(f"- {r['Query']}\n -> Expected: {r['Expected']}\n -> Predicted: {r['Predicted']} (Score: {r['Score']})\n")
 
 # Markdown report
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-report_lines = [
-    f"# Product Matching Evaluation Report ({timestamp})\n",
-    f"**Accuracy**: {accuracy:.2%}\n",
-    f"**Mean Match Score**: {mean_score:.2f}\n",
-    "\n## Mismatches:\n"
-]
-
-for q, exp, pred, s in mismatches:
-    report_lines.append(f"- **Query**: '{q}'\n  - Expected: '{exp}'\n    - Predicted: '{pred}'\n    - Score: '{s:.2f}'\n")
-
-# Save report
 os.makedirs("reports", exist_ok=True)
-report_path = f"reports/product_matching_report_{timestamp}.md"
-with open (report_path, "w") as f:
-    f.write("\n".join(report_lines))
+md_path = f"reports/product_matching_report_{timestamp}.md"
 
-print(f"\n Report saved to {report_path}")
+with open(md_path, "w") as f:
+    f.write(f"# Product Matching Evaluation Report ({timestamp})\n\n")
+    f.write(f"**Accuracy**: {accuracy:.2%}\n\n")
+    f.write(f"**Mean Match Score**: {mean_score:.2f}\n\n")
+    f.write("## Predictions Table\n\n")
+    f.write("| Query | Expected | Predicted | Score |\n")
+    f.write("|-------|----------|-----------|--------|\n")
+   
+    for r in results:
+        f.write(f"| {r['Query']} | {r['Expected']} | {r['Predicted']} | {r['Score']} |\n")
+
+print(f"\n Report saved to {md_path}")
+
+# CSV for later analysis
+csv_path = f"reports/product_matching_predictions_{timestamp}.csv"
+pd.DataFrame(results).to_csv(csv_path, index=False)
+print(f"\n CSV saved to {csv_path}")

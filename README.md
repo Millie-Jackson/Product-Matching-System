@@ -24,9 +24,12 @@ When a user adds an item like “600g chicken breast,” the system finds the cl
 product-matching/
 |
 ├── data/
-│   └── sample_products.csv
+│   └── sample_products.csv    
+│   └── supermarket_products.csv # Central store/product/price dataset
 ├── matchers/
-│   ├── clean_text.py          # Text cleaning and formatting
+│   ├── clean_text.py          # Text cleaning and 
+formatting
+│   └── store_matcher.py           # New file to handle store-by-store matching
 │   ├── tfidf_matcher.py       # TF-IDF similarity scoring
 │   ├── quantity_parser.py     # Extract and normalise weights
 │   └── product_matcher.py     # Combine text + size matching
@@ -108,4 +111,15 @@ Combine name similarity + size penalty to rank best candidates
 - Build API or Streamlit dashboard for production use
 
 ---
-
+High-Level Flow
+User Shopping List
+        ↓
+Clean + Parse Each Item
+        ↓
+Match Best Product in Each Store
+        ↓
+Retrieve Prices per Store
+        ↓
+Sum Total Cost per Store
+        ↓
+Return Ranked List of Store Totals + Item-Level Breakdown
