@@ -10,6 +10,11 @@ import pandas as pd
 from matchers.clean_text import clean_text
 from matchers.quantity_parser import extract_weight
 from matchers.tfidf_matcher import match_product as tfidf_match
+from sentence_transformers import SentenceTransformer, util
+
+
+# Load SBERT model
+sbert_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 def load_product_data(path="data/supermarket_products.csv") -> pd.DataFrame:
@@ -21,14 +26,29 @@ def load_product_data(path="data/supermarket_products.csv") -> pd.DataFrame:
 
     return df
 
-def match_product_per_store(query: str, df: pd.DataFrame, threshold: float = 0.2) -> pd.DataFrame:
+def sbert_match_product(query: str, candidates: list[str]) -> tuple[str, float]:
+    """
+    Find best match using SBERT sentence similarity.
+    Returns the candidate string and its similarity score.
+    """
+
+    query_embedding = sbert_model.encode(query, convert_to_tensor=True)
+    candidate_embeddings = sbert_model.encode(candidates, convert_to_tensor=True)
+    
+    scores = util.pytorch_cos_sim(query_embedding, candidate_embeddings)[0]
+    best_idx = scores.argmax().item()
+    best_score = scores[best_idx].item()
+
+    return candidates[best_idx], best_score
+
+def match_product_per_store(query: str, df: pd.DataFrame, threshold: float = 0.2, method: str = "tfidf") -> pd.DataFrame:
     """
     Given a query (e.g. '600g Chicken Breast') and a product dataset,
     return the best match in each store above threshold.
     """
 
     matched = []
-    
+
     for store in df["store"].unique():
         subset = df[df["store"] == store].copy()
         if subset.empty:
@@ -48,7 +68,7 @@ def match_product_per_store(query: str, df: pd.DataFrame, threshold: float = 0.2
 
     return pd.DataFrame(matched)
 
-def calculate_total_price(queries: list[str], df: pd.DataFrame, threshold: float = 0.2) -> tuple[pd.DataFrame, pd.DataFrame]:
+def calculate_total_price(queries: list[str], df: pd.DataFrame, threshold: float = 0.2, method: str = "tfidf") -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Given a list of queries and a product database, return total price per store,
     along with item-level breakdowns.
@@ -57,7 +77,7 @@ def calculate_total_price(queries: list[str], df: pd.DataFrame, threshold: float
     all_matches = []
 
     for query in queries:
-        per_store = match_product_per_store(query, df, threshold)
+        per_store = match_product_per_store(query, df, threshold, method)
         #all_matches.append(per_store)
         if not per_store.empty:
             all_matches.append(per_store)
