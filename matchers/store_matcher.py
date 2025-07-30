@@ -18,15 +18,23 @@ sbert_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 def load_product_data(path="data/supermarket_products.csv") -> pd.DataFrame:
-    """Load and return all available products with store and price info."""
+    """Load and return all available products with store and pricing info."""
 
     df = pd.read_csv(path)
+
+    # Clean & extract weight
     df["cleaned"] = df["product"].apply(clean_text)
     df["weight"] = df["product"].apply(extract_weight)
 
+    # Handle missing weights 1
+    df["weight"] = df["weight"].fillna(1)
+
+    # Calculate price per gram
+    df["price_per_gram"] = df["price"] / df["weight"]
+
     return df
 
-def sbert_match_product(query: str, candidates: list[str]) -> tuple[str, float]:
+def sbert_match(query: str, candidates: list[str]) -> tuple[str, float]:
     """
     Find best match using SBERT sentence similarity.
     Returns the candidate string and its similarity score.
@@ -41,7 +49,7 @@ def sbert_match_product(query: str, candidates: list[str]) -> tuple[str, float]:
 
     return candidates[best_idx], best_score
 
-def match_product_per_store(query: str, df: pd.DataFrame, threshold: float = 0.2, method: str = "tfidf") -> pd.DataFrame:
+def match_product_per_store(query: str, df: pd.DataFrame, threshold: float = 0.2, method: str = "tfidf", prefer_value=True) -> pd.DataFrame:
     """
     Given a query (e.g. '600g Chicken Breast') and a product dataset,
     return the best match in each store above threshold.
@@ -50,25 +58,34 @@ def match_product_per_store(query: str, df: pd.DataFrame, threshold: float = 0.2
     matched = []
 
     for store in df["store"].unique():
-        subset = df[df["store"] == store].copy()
-        if subset.empty:
-            continue
+        store_df = df[df["store"] == store]
+        candidates = store_df["product"].tolist()
 
-        best_match, score = tfidf_match(query, list(subset["product"]))
+        if method == "sbert":
+            best_match, score = sbert_match(query, candidates)
+        else:
+            best_match, score = tfidf_match(query, candidates)
 
         if score >= threshold:
-            row = subset[subset["product"] == best_match].iloc[0]
+            row = store_df[store_df["product"] == best_match].iloc[0]
             matched.append({
-                "store": store,
                 "query": query,
-                "matched_product": best_match,
+                "matched_product": row["product"],
+                "store": row["store"],
                 "price": row["price"],
-                "score": round(score, 3)
+                "score": round(score, 3),
+                "weight": row["weight"],
+                "price_per_gram": round(row["price_per_gram"], 5)
             })
+    # Preference for cheaper price per gram if multiple matches for same store
+    if prefer_value:
+        result_df = pd.DataFrame(matched).sort_values(by=["score", "price_per_gram"], ascending=[False, True])
+    else:
+        result_df = pd.DataFrame(matched).sort_values(by=["score"], ascending=False)
 
-    return pd.DataFrame(matched)
+    return result_df.sort_values(by=["score", "price_per_gram"], ascending=[False, True]).reset_index(drop=True)
 
-def calculate_total_price(queries: list[str], df: pd.DataFrame, threshold: float = 0.2, method: str = "tfidf") -> tuple[pd.DataFrame, pd.DataFrame]:
+def calculate_total_price(queries: list[str], df: pd.DataFrame, threshold: float = 0.2, method: str = "tfidf", prefer_value=True) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Given a list of queries and a product database, return total price per store,
     along with item-level breakdowns.

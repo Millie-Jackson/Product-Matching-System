@@ -1,10 +1,9 @@
-store,product,price
-Tesco,Chicken Thighs 600g,4.2
-Tesco,"Tofu, Block (400g)",1.85
-Tesco,Pack of Cheese Slices (no weight),2.1
-Aldi,Chicken Fillet 640g,3.75
-Aldi,Vegan Chicken Strips - 300g!,2.6
-Aldi,"Tofu, Block (400g)",1.65
-Lidl,Whole Chicken 1.2kg,5.1
-Lidl,Vegan Chicken Strips - 300g!,2.7
-Lidl,Chicken Fillet 640g,3.85
+product,price,store,weight,price_per_gram
+Chicken Breast 640g,3.0,Tesco,640.0,0.0046875
+Chicken Breast 500g,2.5,Aldi,500.0,0.005
+Chicken Thighs 1.2kg,4.8,Lidl,1200.0,0.004
+Tofu Block (400g),2.0,Aldi,400.0,0.005
+Vegan Chicken Strips - 300g!,2.4,Tesco,300.0,0.008
+Pack of Cheese Slices,1.8,Aldi,1.0,1.8
+Whole Chicken 1.5kg,5.25,Lidl,1500.0,0.0035
+Chicken Fillet 600g,2.9,Tesco,600.0,0.004833333333333334
