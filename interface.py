@@ -9,8 +9,10 @@ and working match table + CSV download. Supports shopping lists.
 import gradio as gr
 import pandas as pd
 import tempfile
+from datetime import datetime
 from matchers.product_matcher import match_product
-from matchers.store_matcher import load_product_data, calculate_total_price
+from matchers.store_matcher import load_product_data, calculate_total_price, match_product_per_store
+from matchers.evaluator import run_evaluation
 
 
 # Load product data
@@ -41,11 +43,18 @@ def match_shopping_list(shopping_list_text, threshold, method, prefer_value):
 
     # Save csv for download
     csv_data = pd.merge(breakdown, totals, on="store")
-    tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".csv", mode="w", encoding="utf-8")
+    tfilename = f"matched_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".csv", prefix=tfilename[:-4] + "_", mode="w", encoding="utf-8")
     csv_data.to_csv(tmp_file.name, index=False)
     tmp_file.flush()
 
     return totals, breakdown, tmp_file.name, winner_message
+
+def run_eval(method, prefer_value, run_both):
+
+    result_text, csv_path = run_evaluation(method, prefer_value, run_both)
+
+    return result_text, csv_path
 
 
 with gr.Blocks() as demo:
@@ -57,7 +66,6 @@ with gr.Blocks() as demo:
         match_button = gr.Button("Compare", scale=1)
 
     message_output = gr.Textbox(label="Status Message", interactive=False)
-
     threshold_slider = gr.Slider(0.0, 1.0, value=0.2, step=0.05, label="Confindence Threshold")
     method_dropdown = gr.Dropdown(
         choices=["tfidf", "sbert"], 
@@ -91,6 +99,22 @@ with gr.Blocks() as demo:
         fn=match_shopping_list,
         inputs=[shopping_input, threshold_slider, method_dropdown, prefer_value_checkbox],
         outputs=[totals_output, breakdown_output, csv_download, message_output]
+    )
+
+    gr.Markdown("---")
+    gr.Markdown("## Evaluate Accuracy on Test Set")
+
+    eval_method = gr.Dropdown(choices=["tfidf", "sbert"], value="tfidf", label="Evaluation Method")
+    eval_value_toggle = gr.Checkbox(label="Prefer Best Value in Evalusation", value=True)
+    run_both_toggle = gr.Checkbox(label="Compare TF-IDF vs SBERT", value=False)
+    run_eval_button = gr.Button("Run Evaluation")
+    eval_output = gr.Textbox(label="Results Summary", lines=10)
+    eval_csv = gr.File(label="Download CSV Results")
+
+    run_eval_button.click(
+        fn=run_eval,
+        inputs=[eval_method, eval_value_toggle, run_both_toggle],
+        outputs=[eval_output, eval_csv]
     )
 
 

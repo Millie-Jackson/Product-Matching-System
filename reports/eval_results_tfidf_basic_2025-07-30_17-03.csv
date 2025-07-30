@@ -1,0 +1,8 @@
+query,expected,predictied,score,store
+600g Chicken Breast,600g Boneless Chicken Breast,Chicken Breast 500g,0.91,Aldi
+640g Chicken Fillet,Chicken Fillet 640g,Chicken Fillet 600g,0.902,Tesco
+1kg Whole Chicken,Whole Chicken 1.2kg,Whole Chicken 1.5kg,0.93,Lidl
+Vegan Chicken Strips,Vegan Chicken Strips - 300g!,Vegan Chicken Strips - 300g!,0.802,Tesco
+Tofu Block 400g,"Tofu, Block (400g)",Tofu Block (400g),0.97,Aldi
+Cheddar Cheese Slices,Pack of Cheese Slices (no weight),Pack of Cheese Slices,0.845,Aldi
+Chicken Thighs 600g,Chicken Thighs 600g,Chicken Thighs 1.2kg,0.824,Lidl
