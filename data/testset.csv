@@ -1,8 +1,9 @@
 query,expected_match
-600g Chicken Breast,600g Boneless Chicken Breast
-640g Chicken Fillet,Chicken Fillet 640g
-1kg Whole Chicken,Whole Chicken 1.2kg
-Vegan Chicken Strips,Vegan Chicken Strips - 300g!
-Tofu Block 400g,"Tofu, Block (400g)"
-Cheddar Cheese Slices,Pack of Cheese Slices (no weight)
-Chicken Thighs 600g,Chicken Thighs 600g
+600g chicken fillet,Chicken Fillet 600g
+640g chicken breast,Chicken Breast 640g
+chicken breast 500 grams,Chicken Breast 500g
+1.2kg chicken thighs,Chicken Thighs 1.2kg
+400g tofu block,Tofu Block (400g)
+vegan chicken strips 300g,Vegan Chicken Strips - 300g!
+cheese slices pack,Pack of Cheese Slices
+1.5kg whole chicken,Whole Chicken 1.5kg

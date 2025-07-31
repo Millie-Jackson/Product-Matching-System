@@ -1,11 +1,8 @@
-# matchers/tfidf_matcher.py
-
-
 """
-tfidf_matcher.py
+matchers/tfidf_matcher.py
 
-Vectorises product descriptions using TF-IDF and calculates similarity
-to find the most relevant match from a candidate list.
+Uses TF-IDF vectorisation to find the most similar match to a query
+from a list of candidate product descriptions.
 """
 
 
@@ -15,7 +12,8 @@ from matchers.clean_text import clean_text
 
 
 def match_product(query: str, candidates: list[str]) -> tuple[str, float]:
-
+    """Return the most similar product and its similarity score."""
+    
     all_texts = [clean_text(query)] + [clean_text(c) for c in candidates]
 
     vectorizer = TfidfVectorizer()

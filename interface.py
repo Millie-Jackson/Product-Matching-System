@@ -10,8 +10,7 @@ import gradio as gr
 import pandas as pd
 import tempfile
 from datetime import datetime
-from matchers.product_matcher import match_product
-from matchers.store_matcher import load_product_data, calculate_total_price, match_product_per_store
+from matchers.store_matcher import load_product_data, calculate_total_price
 from matchers.evaluator import run_evaluation
 
 
@@ -52,9 +51,9 @@ def match_shopping_list(shopping_list_text, threshold, method, prefer_value):
 
 def run_eval(method, prefer_value, run_both):
 
-    result_text, csv_path = run_evaluation(method, prefer_value, run_both)
+    summary, csv_path = run_evaluation(method, prefer_value, run_both)
 
-    return result_text, csv_path
+    return summary, csv_path
 
 
 with gr.Blocks() as demo:
@@ -66,7 +65,7 @@ with gr.Blocks() as demo:
         match_button = gr.Button("Compare", scale=1)
 
     message_output = gr.Textbox(label="Status Message", interactive=False)
-    threshold_slider = gr.Slider(0.0, 1.0, value=0.2, step=0.05, label="Confindence Threshold")
+    threshold_slider = gr.Slider(0.0, 1.0, value=0.2, step=0.05, label="Confidence Threshold")
     method_dropdown = gr.Dropdown(
         choices=["tfidf", "sbert"], 
         value="tfidf", 

@@ -49,10 +49,9 @@ def sbert_match(query: str, candidates: list[str]) -> tuple[str, float]:
 
     return candidates[best_idx], best_score
 
-def match_product_per_store(query: str, df: pd.DataFrame, threshold: float = 0.2, method: str = "tfidf", prefer_value=True) -> pd.DataFrame:
+def match_product_per_store(query: str, df: pd.DataFrame, threshold: float = 0.2, method: str = "tfidf", prefer_value: bool = True) -> pd.DataFrame:
     """
-    Given a query (e.g. '600g Chicken Breast') and a product dataset,
-    return the best match in each store above threshold.
+    Given a query and a product dataset, return the best match in each store above threshold.
     """
 
     matched = []
@@ -77,13 +76,19 @@ def match_product_per_store(query: str, df: pd.DataFrame, threshold: float = 0.2
                 "weight": row["weight"],
                 "price_per_gram": round(row["price_per_gram"], 5)
             })
-    # Preference for cheaper price per gram if multiple matches for same store
-    if prefer_value:
-        result_df = pd.DataFrame(matched).sort_values(by=["score", "price_per_gram"], ascending=[False, True])
-    else:
-        result_df = pd.DataFrame(matched).sort_values(by=["score"], ascending=False)
 
-    return result_df.sort_values(by=["score", "price_per_gram"], ascending=[False, True]).reset_index(drop=True)
+    # Preference for cheaper price per gram if multiple matches for same store
+    if matched:
+
+        result_df = pd.DataFrame(matched)
+        result_df = result_df.sort_values(
+            by=["score", "price_per_gram"] if prefer_value else ["score"],
+            ascending=[False, True] if prefer_value else [False]
+        ).reset_index(drop=True)
+
+        return result_df
+
+    return pd.DataFrame()
 
 def calculate_total_price(queries: list[str], df: pd.DataFrame, threshold: float = 0.2, method: str = "tfidf", prefer_value=True) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -94,7 +99,7 @@ def calculate_total_price(queries: list[str], df: pd.DataFrame, threshold: float
     all_matches = []
 
     for query in queries:
-        per_store = match_product_per_store(query, df, threshold, method)
+        per_store = match_product_per_store(query, df, threshold, method, prefer_value)
         #all_matches.append(per_store)
         if not per_store.empty:
             all_matches.append(per_store)

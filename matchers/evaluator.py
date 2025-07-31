@@ -1,8 +1,8 @@
 """
-matches/evaluator.py
+matchers/evaluator.py
 
-Provides a function to evaluate matcher performance on a labelled test set.
-Generates summary statistics and a CSV file with all predictions.
+Evaluates matcher performance on a labelled test set.
+Generates summary statistics and saves predictions to CSV.
 """
 
 
@@ -34,7 +34,13 @@ def run_evaluation(method: str = "tfidf", prefer_value: bool = True, run_both: b
             query = row["query"]
             expected = row["expected_match"]
 
-            totals, breakdown = calculate_total_price([query], product_df, threshold=0.0, method=method, prefer_value=prefer_value)
+            totals, breakdown = calculate_total_price(
+                [query], 
+                product_df, 
+                threshold=0.0, 
+                method=m, 
+                prefer_value=prefer_value
+            )
             if breakdown.empty:
                 results.append({"query": query, "expected": expected, "predicted": "No Match", "score": 0.0, "store": "-"})
                 continue
@@ -48,12 +54,15 @@ def run_evaluation(method: str = "tfidf", prefer_value: bool = True, run_both: b
             if predicted == expected:
                 correct += 1
             
-            results.append({"query": query, "expected": expected, "predictied": predicted, "score": round(score, 3), "store": store})
+            results.append({"query": query, "expected": expected, "predicted": predicted, "score": round(score, 3), "store": store})
 
         accuracy = correct / len(results)
         mean_score = total_score / len(results)
-
-        summary = f"Accuracy: {accuracy:.2%}\nMean Score: {mean_score:.2f}\nMethod: {method.upper()} | Value Mode: {'On' if prefer_value else 'Off'}\n"
+        summary = (
+            f"Accuracy: {accuracy:.2%}\n"
+            f"Mean Score: {mean_score:.2f}\n"
+            f"Method: {m.upper()} | Value Mode: {'On' if prefer_value else 'Off'}"
+        )
         all_summaries.append(summary)
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
