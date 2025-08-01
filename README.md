@@ -53,6 +53,7 @@ Adjust the confidence threshold or switch methods to see differences.
 - Compare TF-IDF vs SBERT
 - See accuracy on a test dataset
 - Download evaluation CSV
+  
 ![Evaluation Summary](assets/evaluation.png)
 
 ---
