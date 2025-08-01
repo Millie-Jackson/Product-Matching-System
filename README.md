@@ -1,125 +1,187 @@
-# 🛒 Product Matching System: Smarter Shopping List Comparisons
+# Product Matching System
 
-## 💡 Project Summary
+A prototype that compares shopping lists across supermarkets using AI-based fuzzy matching.  
+Runs on sample data, but designed for real-world use.
 
-This project demonstrates a smart matching system that compares products across different supermarkets — even when names, sizes, and packaging vary. It solves a real-world freelance use case: helping users build shopping lists and find the best total price across stores.
-
-When a user adds an item like “600g chicken breast,” the system finds the closest equivalent product in each supermarket, handling own-brand variations and size mismatches.
-
----
-
-![Interface](assets/Screenshot-Interface.png)
-
-## 🚀 Features
-
-✅ Clean and normalise product names
-✅ Extract and compare product quantities (e.g., "1.2kg" vs. "600g")
-✅ Calculate similarity using TF-IDF vectorisation
-✅ Penalise matches with large size mismatches
-✅ Simple CLI and Gradio interfaces for testing
+Built by Millie Jackson @Nested{Loop}
 
 ---
 
-## 📂 File Structure
-product-matching/
-|
-├── data/
-│   └── sample_products.csv    
-│   └── supermarket_products.csv # Central store/product/price dataset
-├── matchers/
-│   ├── clean_text.py          # Text cleaning and 
-formatting
-│   └── store_matcher.py           # New file to handle store-by-store matching
-│   ├── tfidf_matcher.py       # TF-IDF similarity scoring
-│   ├── quantity_parser.py     # Extract and normalise weights
-│   └── product_matcher.py     # Combine text + size matching
-├── demo.py                    # CLI output testing script
-├── interface.py               # CLI + Gradio demo interface
-└── README.md
+##  Features
+- Smart Matching using TF-IDF or SBERT
+- Understands weights (e.g. "600g", "1.2kg")
+- Optional value-based matching (price per gram)
+- Total price per store + itemised breakdown
+- Built-in test set for model evaluation
+- CSV download of results
 
 ---
 
-## 📊 Sample Output (CLI)
+## How It Works
 
-Original:      600g Boneless Chicken Breast
-Cleaned:       600g boneless chicken breast
-Parsed weight: 600g
-----------------------------------------
-Original:      1.2kg Whole Chicken
-Cleaned:       12kg whole chicken
-Parsed weight: 1200g
-----------------------------------------
-Query:        600g Chicken Breast
-Best match:   Chicken Thighs 600g
-Match score:  0.7423
+**1. Text Cleaning**  
+Lowercase, remove symbols, normalise spacing
 
-Users can enter a shopping list item (like "600g Chicken Breast") and instantly see the best-matching product from a mock supermarket database.
+**2. Quantity Parsing**  
+Extract weights (e.g., "1.2kg") and convert to grams
+
+**3. TF-IDF Embedding**  
+Represent product names as vectors
+
+**4. Matching Logic**  
+Combine name similarity + size penalty to rank best candidates
+
+---
+
+## Example Inputs
+Paste a shopping list like:
+
+```
+600g Chicken Breast
+Tofu Block 400g
+Cheese Slices
+```
+
+Adjust the confidence threshold or switch methods to see differences.
+![Shopping List Input](assets/input.png)
+![Matched Results](assets/output.png)
+
+---
+
+## Evaluation Mode
+- Use the evaluation tool at the bottom of the app to:
+- Compare TF-IDF vs SBERT
+- See accuracy on a test dataset
+- Download evaluation CSV
+![Evaluation Summary](assets/evaluation.png)
+
+---
 
 🧪 Try it yourself (locally):
 
-Run `python interface.py`
+Run `python app.py`
 
 Then visit: `http://127.0.0.1:7860`
 
 ---
 
+## Tech Stack
+- Python
+- Pandas
+- Scikit-learn
+- SentenceTransformers
+- Gradio
+
+Hosted on: Hugging Face Spaces
+
+---
+
+## Features
+
+- Smart product matching using TF-IDF or SBERT
+- Understands quantity units like "1.2kg" or "400g"
+- Optional scoring by price per gram (value-based matching)
+- Price comparison per store
+- Evaluation mode with accuracy stats and CSV export
+
+---
+
 ## 🗃️ How It Works
 
-**1. Text Cleaning**
-
+**1. Text Cleaning**  
 Lowercase, remove symbols, normalise spacing
 
-**2. Quantity Parsing**
-
+**2. Quantity Parsing**  
 Extract weights (e.g., "1.2kg") and convert to grams
 
-**3. TF-IDF Embedding**
-
+**3. TF-IDF Embedding**  
 Represent product names as vectors
 
-**4. Matching Logic**
-
+**4. Matching Logic**  
 Combine name similarity + size penalty to rank best candidates
 
 ---
 
-## 🔧 Tech Stack
+## Example Input
 
-- Python 3
-- `scikit-learn` for text vectorisation and similarity
-- `re` for pattern matching
-- `gradio` for interactive demo
+```text
+600g Chicken Breast
+Tofu Block 400g
+Cheese Slices
+```
 
----
-
-## 🧠 Learning Highlights
-
-- Applied NLP to real-world product descriptions
-- Used TF-IDF and cosine similarity for semantic matching
-- Parsed structured features (quantities) with regex
-- Combined numeric + text similarity for smarter search
-- Created a clean, modular structure ideal for portfolios
+You can adjust the **confidence threshold** and toggle between **TF-IDF** and **SBERT** to see different results.
 
 ---
 
-## 🧩 Possible Extensions
+## High-Level Flow
 
-- Add support for transformer embeddings (e.g. SBERT)
-- Show full ranked match list instead of just top result
-- Handle multiple query items (full shopping lists)
-- Load real product data from supermarket APIs
-- Build API or Streamlit dashboard for production use
-
----
-High-Level Flow
+```text
 User Shopping List
-        ↓
-Clean + Parse Each Item
-        ↓
-Match Best Product in Each Store
-        ↓
-Retrieve Prices per Store
-        ↓
-Sum Total Cost per Store
-        ↓
-Return Ranked List of Store Totals + Item-Level Breakdown
+       ↓
+ Text Cleaning + Weight Extraction
+       ↓
+Similarity Matching (TF-IDF or SBERT)
+       ↓
+ Optional Value Adjustment (Price Per Gram)
+       ↓
+ Store-Level Matching + Total Price Calculation
+       ↓
+ CSV Download + Evaluation Reporting
+```
+
+---
+
+## Repository Structure
+
+```
+matchers/
+│
+├── clean_text.py           # Text cleaning pipeline for normalising product names
+├── evaluator.py            # Test set evaluation logic + accuracy scoring
+├── product_matcher.py      # Core matcher using name + weight similarity
+├── quantity_parser.py      # Extracts weights from product strings
+├── sbert_matcher.py        # Sentence-BERT matcher using pretrained embeddings
+├── store_matcher.py        # Per-store product matching and basket pricing
+├── tfidf_matcher.py        # TF-IDF vectoriser-based matcher
+│
+data/
+├── supermarket_products.csv  # Sample product data
+├── testset.csv               # Test queries and expected matches
+│
+reports/
+├── eval_results_*.csv        # Auto-generated evaluation results
+│
+app.py                      # Gradio app for UI demo (entry point)
+requirements.txt            # Minimal dependencies for deployment
+README.md                   # You're here!
+```
+
+---
+
+## Evaluation Mode
+
+Use the built-in evaluation tool to:
+
+- Run automated matching on a labelled test set
+- Compare TF-IDF and SBERT performance
+- Export results to CSV
+- See accuracy and average similarity score
+
+---
+
+## About
+
+**Author:** Millie Jackson  
+**Freelance Lab:** Nested{Loop}  
+**Portfolio (Coming Soon):** [milliejackson.dev](https://milliejackson.dev)  
+**Hugging Face:** [huggingface.co/MillieJackson](https://huggingface.co/MillieJackson)
+**LinkedIn:** [LinkedIn](https://www.linkedin.com/in/millie-jackson7/)
+
+---
+
+## License
+
+This repository is for demonstration and portfolio purposes only. Contact Millie to discuss commercial use, adaptations, or collaboration.
+
+---
